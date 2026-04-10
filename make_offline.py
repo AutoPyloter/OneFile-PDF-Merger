@@ -22,13 +22,21 @@ def download_and_encode_fonts(css_content):
     return css_content
 
 def main():
-    input_file = 'OneFile-PDF-Merger.html'
+    input_file = 'index.html'
     output_file = 'OneFile-Offline.html'
     
     with open(input_file, 'r', encoding='utf-8') as f:
         html_content = f.read()
 
     soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Remove the offline download button from the generated bundle
+    for a_tag in soup.find_all('a', href='OneFile-Offline.html'):
+        parent = a_tag.parent
+        if parent and parent.name == 'div' and 'mr-6' in parent.get('class', []):
+            parent.decompose()
+        else:
+            a_tag.decompose()
 
     # 1. Process Stylesheets
     for link in soup.find_all('link', rel='stylesheet'):

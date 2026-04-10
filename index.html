@@ -389,6 +389,12 @@
       transform: translateY(-2px);
     }
 
+    .file-card.selected {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.1);
+      box-shadow: 0 0 0 2px var(--accent), 0 8px 30px rgba(108, 99, 255, 0.3);
+    }
+
     .file-card.sortable-ghost {
       opacity: 0.4;
       border: 2px dashed var(--accent);
@@ -923,6 +929,11 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h5"/><path d="M3 12h8"/><path d="M3 17h11"/><polyline points="15 4 19 8 15 12"/><line x1="19" y1="8" x2="19" y2="20"/></svg>
             A-Z
           </button>
+          <button id="btn-sort-num" class="btn-sort" title="Sort Numerically" aria-label="Sort files numerically" disabled>
+            <!-- icon: sort numeric -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h5"/><path d="M3 12h8"/><path d="M3 17h11"/><polyline points="15 4 19 8 15 12"/><line x1="19" y1="8" x2="19" y2="20"/></svg>
+            0-9
+          </button>
           <button id="btn-sort-date" class="btn-sort" title="Sort by Date Modified (oldest first)" aria-label="Sort files by date" disabled>
             <!-- icon: calendar -->
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -989,6 +1000,17 @@
   </main>
 
   <!-- ════════════════════════════════════════════════════════════════
+       BATCH ACTIONS (Multi-Select)
+  ═════════════════════════════════════════════════════════════════ -->
+  <div id="batch-actions" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,0.5); padding:0.6rem 1rem; border-radius:12px; z-index:50; gap:0.5rem; align-items:center;">
+    <span style="font-size:0.85rem; color:var(--text); font-weight:600; padding-right:0.5rem;"><span id="batch-count">0</span> <span data-i18n="batchSelected">seçili</span></span>
+    <button class="btn btn-ghost" id="btn-batch-rot-left" title="Rotate Left">↺</button>
+    <button class="btn btn-ghost" id="btn-batch-rot-right" title="Rotate Right">↻</button>
+    <button class="btn btn-ghost" id="btn-batch-delete" style="color:var(--danger);" title="Delete Selected">✕ <span data-i18n="batchDelete">Sil</span></button>
+    <button class="btn btn-ghost" id="btn-batch-cancel" style="margin-left:0.5rem;" title="Cancel Selection">Esc</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
        SEO / ABOUT SECTION
   ═════════════════════════════════════════════════════════════════ -->
   <section id="seo-section" class="max-w-[1000px] mx-auto px-6 py-12 mt-4 mb-20 text-[var(--muted)] border-t border-[var(--border)]">
@@ -1021,6 +1043,18 @@
         <strong id="file-count">0</strong> <span data-i18n="fileCountSuffix">dosya</span> &nbsp;·&nbsp; <span data-i18n="dragReorder">Sıralamak için sürükleyin</span>
       </span>
       <div style="margin-left:auto;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+        <!-- Fit to A4 toggle -->
+        <label class="pg-num-toggle" title="Automatically scale and center images to standard A4 size">
+          <input type="checkbox" id="chk-fit-a4" aria-label="Fit images to A4" />
+          <span class="toggle-pill"></span>
+          <span data-i18n="fitToA4">A4'e Sığdır</span>
+        </label>
+        
+        <!-- Watermark Input -->
+        <div style="display:flex; align-items:center; gap:0.4rem;">
+          <input type="text" id="watermark-input" data-i18n-prop="placeholder" data-i18n="watermarkPlaceholder" placeholder="Filigran..." style="background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.4rem 0.6rem; border-radius:6px; font-size:0.85rem; width:120px;" />
+        </div>
+
         <!-- Page-number toggle -->
         <label class="pg-num-toggle" title="Stamp page numbers at the bottom-center of every page">
           <input type="checkbox" id="chk-page-numbers" aria-label="Add page numbers" />
@@ -1052,6 +1086,12 @@
 
   <!-- ═══ Toast ═══ -->
   <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ═══ Lightbox Preview ═══ -->
+  <div id="lightbox-modal" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.9); align-items:center; justify-content:center;">
+    <button id="lightbox-close" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; font-size:2.5rem; cursor:pointer;" aria-label="Close Lightbox">&times;</button>
+    <img id="lightbox-img" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px;" />
+  </div>
 
 
   <!-- ════════════════════════════════════════════════════════════════
@@ -1090,16 +1130,21 @@
       pagesBadge:        'sf',
       // Page Range Input
       pageRangePlaceholder: 'Örn: 1, 3, 5-8',
+      watermarkPlaceholder: 'Filigran...',
+      fitToA4:           'A4\'e Sığdır',
       // Toasts & Alerts
       toastSaved:        '✅ PDF başarıyla kaydedildi!',
       toastEncrypted:    '🔒 Şifreli PDF atlandı',
       toastSortedAZ:     '✦ A → Z Sıralandı',
+      toastSortedNum:    '✦ Sayısal Sıralandı',
       toastSortedDate:   '✦ Tarihe Göre Sıralandı (en eskiden)',
       toastReversed:     '✦ Sıra Tersine Çevrildi',
       toastSkipped:      '⚠ Desteklenmeyen dosya atlandı',
       toastThumbError:   '⚠ Önizleme oluşturulamadı',
       // Confirm dialog
       confirmClear:      'Tüm dosyalar listeden kaldırılsın mı?',
+      batchSelected:     'seçili',
+      batchDelete:       'Sil',
       // SEO
       seoMainTitle:      'Gizlilik Odaklı Çevrimdışı PDF Aracı',
       seoWhyTitle:       'Neden OneFile?',
@@ -1139,16 +1184,21 @@
       pagesBadge:        'pg',
       // Page Range Input
       pageRangePlaceholder: 'e.g. 1, 3, 5-8',
+      watermarkPlaceholder: 'Watermark...',
+      fitToA4:           'Fit to A4',
       // Toasts & Alerts
       toastSaved:        '✅ PDF saved successfully!',
       toastEncrypted:    '🔒 Skipped encrypted PDF',
       toastSortedAZ:     '✦ Sorted A \u2192 Z',
+      toastSortedNum:    '✦ Sorted Numerically',
       toastSortedDate:   '✦ Sorted by Date (oldest first)',
       toastReversed:     '✦ Order reversed',
       toastSkipped:      '⚠ Skipped unsupported file',
       toastThumbError:   '⚠ Could not preview',
       // Confirm dialog
       confirmClear:      'Remove all files from the list?',
+      batchSelected:     'selected',
+      batchDelete:       'Delete',
       // SEO
       seoMainTitle:      'Privacy-First Offline PDF Tool',
       seoWhyTitle:       'Why OneFile?',
@@ -1177,7 +1227,13 @@
     // Update all static data-i18n elements
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.dataset.i18n;
-      if (key in t) el.innerHTML = t[key];
+      if (key in t) {
+        if (el.dataset.i18nProp === 'placeholder') {
+          el.placeholder = t[key];
+        } else {
+          el.innerHTML = t[key];
+        }
+      }
     });
 
     // Update page-range input placeholders dynamically
@@ -1200,6 +1256,8 @@
   // ─── State ────────────────────────────────────────────────────────
   /** @type {Array<{id:string, file:File, type:'pdf'|'image', rotation:number, pageCount:number|null, thumbUrl:string|null}>} */
   let fileItems = [];
+  let selectedIds = new Set();
+  let lastSelectedId = null;
   let viewMode = 'grid'; // 'grid' | 'list'
   let idCounter = 0;
 
@@ -1217,15 +1275,50 @@
   const progressOverlay = document.getElementById('progress-overlay');
   const progressFill    = document.getElementById('progress-fill');
   const progressDetail  = document.getElementById('progress-detail');
+  // DOM refs
   const toast           = document.getElementById('toast');
+  const lightboxModal   = document.getElementById('lightbox-modal');
+  const lightboxImg     = document.getElementById('lightbox-img');
+  const lightboxClose   = document.getElementById('lightbox-close');
+
+  const batchActionsEl  = document.getElementById('batch-actions');
+  const batchCountEl    = document.getElementById('batch-count');
+  const btnBatchRotL    = document.getElementById('btn-batch-rot-left');
+  const btnBatchRotR    = document.getElementById('btn-batch-rot-right');
+  const btnBatchDelete  = document.getElementById('btn-batch-delete');
+  const btnBatchCancel  = document.getElementById('btn-batch-cancel');
+
+  lightboxClose.addEventListener('click', () => lightboxModal.style.display = 'none');
+  lightboxModal.addEventListener('click', (e) => {
+    if (e.target === lightboxModal) lightboxModal.style.display = 'none';
+  });
 
   // ─── SortableJS instance ──────────────────────────────────────────
   const sortable = new Sortable(fileCanvas, {
     animation: 180,
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
-    handle: '.drag-handle',
+    // Fallback visually if multiDrag plugin isn't active
+    fallbackTolerance: 3,
+    filter: '.card-controls, .page-range-input', 
+    preventOnFilter: false,
     onEnd(evt) {
+      // If multi-select is active and this dropped item is part of it
+      if (selectedIds.size > 1 && selectedIds.has(evt.item.dataset.id)) {
+          // Snap all other selected elements immediately after the dragged element seamlessly
+          const orderedSelectedIds = Array.from(selectedIds);
+          let insertAfterNode = evt.item;
+          orderedSelectedIds.forEach(id => {
+              if (id !== evt.item.dataset.id) {
+                  const el = fileCanvas.querySelector(`.file-card[data-id="${id}"]`);
+                  if (el) {
+                      fileCanvas.insertBefore(el, insertAfterNode.nextSibling);
+                      insertAfterNode = el; // Chain so they cluster logically
+                  }
+              }
+          });
+      }
+
       // Reorder the state array to match the new DOM order
       const newOrder = [...fileCanvas.querySelectorAll('.file-card')].map(el => el.dataset.id);
       fileItems.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
@@ -1318,6 +1411,7 @@
         file,
         type: isPdf ? 'pdf' : 'image',
         rotation: 0,
+        flipH: false,
         pageCount: null,
         thumbUrl: null,
         pageRange: '',   // user-supplied page selection string (PDFs only)
@@ -1396,6 +1490,7 @@
 
       <!-- Controls -->
       <div class="card-controls">
+        ${item.type === 'image' ? `<button class="ctrl-btn flip-h" title="Flip Horizontal" data-id="${item.id}" aria-label="Flip">⇄</button>` : ''}
         <button class="ctrl-btn rotate-left"  title="Rotate left"  data-id="${item.id}" aria-label="Rotate left">↺</button>
         <button class="ctrl-btn rotate-right" title="Rotate right" data-id="${item.id}" aria-label="Rotate right">↻</button>
         <button class="ctrl-btn remove"       title="Remove"       data-id="${item.id}" aria-label="Remove file">✕</button>
@@ -1406,6 +1501,61 @@
     card.querySelector('.rotate-left').addEventListener('click',  () => rotateItem(item.id, -90));
     card.querySelector('.rotate-right').addEventListener('click', () => rotateItem(item.id, +90));
     card.querySelector('.remove').addEventListener('click',       () => removeItem(item.id));
+    if (item.type === 'image') {
+      card.querySelector('.flip-h').addEventListener('click', () => flipItem(item.id));
+    }
+
+    // Multi-select / Click selection
+    card.addEventListener('click', (e) => {
+      // Ignore if clicking on control buttons or input
+      if (e.target.closest('.card-controls') || e.target.closest('.page-range-input')) return;
+      
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+      if (e.shiftKey && lastSelectedId) {
+        // Shift select range
+        const ids = fileItems.map(i => i.id);
+        const startIdx = ids.indexOf(lastSelectedId);
+        const endIdx = ids.indexOf(item.id);
+        const min = Math.min(startIdx, endIdx);
+        const max = Math.max(startIdx, endIdx);
+        
+        if (!cmdKey) selectedIds.clear();
+        for (let i = min; i <= max; i++) {
+          selectedIds.add(ids[i]);
+        }
+      } else if (cmdKey) {
+        // Toggle single
+        if (selectedIds.has(item.id)) selectedIds.delete(item.id);
+        else selectedIds.add(item.id);
+        lastSelectedId = item.id;
+      } else {
+        // Standard single select
+        if (selectedIds.size === 1 && selectedIds.has(item.id)) {
+          selectedIds.clear();
+          lastSelectedId = null;
+        } else {
+          selectedIds.clear();
+          selectedIds.add(item.id);
+          lastSelectedId = item.id;
+        }
+      }
+
+      // Re-render class states
+      document.querySelectorAll('.file-card').forEach(c => {
+        if (selectedIds.has(c.dataset.id)) c.classList.add('selected');
+        else c.classList.remove('selected');
+      });
+      updateBatchUI();
+    });
+
+    // Double-click to open preview
+    card.addEventListener('dblclick', () => {
+      lightboxImg.src = item.thumbUrl;
+      lightboxImg.style.transform = `rotate(${item.rotation}deg) scaleX(${item.flipH ? -1 : 1})`;
+      lightboxModal.style.display = 'flex';
+    });
 
     // Page-range input: update state & prevent drag from firing
     if (item.type === 'pdf') {
@@ -1439,8 +1589,9 @@
       <img
         src="${item.thumbUrl}"
         alt="${escHtml(item.file.name)} thumbnail"
-        style="transform: rotate(${item.rotation}deg);"
+        style="transform: rotate(${item.rotation}deg) scaleX(${item.flipH ? -1 : 1});"
         loading="lazy"
+        draggable="false"
       />
       ${badgeHtml}
     `;
@@ -1451,7 +1602,15 @@
     const thumbDiv = document.getElementById(`thumb-${item.id}`);
     if (!thumbDiv) return;
     const img = thumbDiv.querySelector('img');
-    if (img) img.style.transform = `rotate(${item.rotation}deg)`;
+    if (img) img.style.transform = `rotate(${item.rotation}deg) scaleX(${item.flipH ? -1 : 1})`;
+  }
+
+  /** Apply horizontal flip to item state */
+  function flipItem(id) {
+    const item = fileItems.find(i => i.id === id);
+    if (!item) return;
+    item.flipH = !item.flipH;
+    applyRotationToCard(item);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -1462,7 +1621,8 @@
   function rotateItem(id, deltaDeg) {
     const item = fileItems.find(i => i.id === id);
     if (!item) return;
-    item.rotation = clampRot(item.rotation + deltaDeg);
+    // Don't clamp here, let it accumulate so CSS transitions rotate correctly
+    item.rotation = item.rotation + deltaDeg;
     applyRotationToCard(item);
   }
 
@@ -1478,7 +1638,18 @@
 
     fileItems.splice(idx, 1);
     document.querySelector(`.file-card[data-id="${id}"]`)?.remove();
+    selectedIds.delete(id);
+    updateBatchUI();
     updateUI();
+  }
+
+  function updateBatchUI() {
+    if (selectedIds.size > 0) {
+      batchCountEl.textContent = selectedIds.size;
+      batchActionsEl.style.display = 'flex';
+    } else {
+      batchActionsEl.style.display = 'none';
+    }
   }
 
   /** Update the file count label and visibility of the merge bar / drop zone */
@@ -1491,6 +1662,7 @@
     // Sort buttons require at least 2 items to be useful
     const canSort = count > 1;
     btnSortAZ.disabled      = !canSort;
+    btnSortNum.disabled     = !canSort;
     btnSortDate.disabled    = !canSort;
     btnSortReverse.disabled = !canSort;
   }
@@ -1546,7 +1718,16 @@
       const mergedPdf = await PDFLib.PDFDocument.create();
       const total = fileItems.length;
 
+      // A promise to yield thread
+      const yieldThread = () => new Promise(r => setTimeout(r, 0));
+
+      const isFitA4 = document.getElementById('chk-fit-a4').checked;
+      const watermarkText = document.getElementById('watermark-input').value.trim();
+      const A4_WIDTH = 595.28;
+      const A4_HEIGHT = 841.89;
+
       for (let i = 0; i < total; i++) {
+        await yieldThread(); // yield execution to avoid UI locking logic
         const item = fileItems[i];
         const pct  = Math.round(((i) / total) * 90);
         setProgress(pct, `Processing (${i + 1}/${total}): ${item.file.name}`);
@@ -1556,7 +1737,7 @@
         let arrayBuffer;
         if (item.type === 'image') {
           const quality = parseFloat(document.getElementById('img-quality').value);
-          arrayBuffer = await compressImage(item.file, quality);
+          arrayBuffer = await compressImage(item.file, quality, item.flipH);
         } else {
           arrayBuffer = await item.file.arrayBuffer();
         }
@@ -1596,44 +1777,103 @@
 
           const { width, height } = embeddedImage;
 
-          // Add page using the image's natural dimensions (no axis-swapping needed).
-          // pdf-lib's page.setRotation() handles the visual rotation correctly,
-          // so the draw step is always flat at the origin.
-          const page = mergedPdf.addPage([width, height]);
+          if (isFitA4) {
+            // A4 Portrait page
+            const page = mergedPdf.addPage([A4_WIDTH, A4_HEIGHT]);
+            
+            // Calculate scale to fit within A4
+            const scale = Math.min(A4_WIDTH / width, A4_HEIGHT / height);
+            const scaledW = width * scale;
+            const scaledH = height * scale;
 
-          // Draw the image completely flat — no rotate param here.
-          page.drawImage(embeddedImage, {
-            x: 0,
-            y: 0,
-            width,
-            height,
-          });
+            // Center image on the A4 page
+            page.drawImage(embeddedImage, {
+              x: (A4_WIDTH - scaledW) / 2,
+              y: (A4_HEIGHT - scaledH) / 2,
+              width: scaledW,
+              height: scaledH,
+            });
 
-          // Rotate the entire page object instead of the drawn image.
-          // This avoids the blank-page bug caused by pdf-lib's bottom-left origin
-          // pushing rotated pixels outside the visible canvas.
-          if (item.rotation !== 0) {
-            page.setRotation(toDegrees(clampRot(item.rotation)));
+            if (item.rotation % 360 !== 0) {
+              const rotatedDeg = clampRot(item.rotation);
+              page.setRotation(toDegrees(rotatedDeg));
+            }
+          } else {
+            // Natural size
+            const page = mergedPdf.addPage([width, height]);
+            page.drawImage(embeddedImage, { x: 0, y: 0, width, height });
+            if (item.rotation % 360 !== 0) {
+              page.setRotation(toDegrees(clampRot(item.rotation)));
+            }
           }
         }
       }
 
-      // ── Optional page numbering ─────────────────────────────────
-      if (document.getElementById('chk-page-numbers').checked) {
+      // ── Optional page numbering & Watermarking ─────────────────
+      const doStampBtn = document.getElementById('chk-page-numbers').checked;
+      if (doStampBtn || watermarkText) {
         setProgress(92, tr('progressStamping'));
-        const font      = await mergedPdf.embedFont(PDFLib.StandardFonts.Helvetica);
-        const allPages  = mergedPdf.getPages();
+        const font = await mergedPdf.embedFont(PDFLib.StandardFonts.Helvetica);
+        
+        // Render watermark to canvas once to support Turkish/Unicode characters
+        let wmImage = null;
+        let wmDims = null;
+        if (watermarkText) {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const fontSize = 120; // High res
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          const textWidth = Math.ceil(ctx.measureText(watermarkText).width);
+          const textHeight = Math.ceil(fontSize * 1.5);
+          
+          canvas.width = textWidth || 1;
+          canvas.height = textHeight || 1;
+          
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = 'black'; // Color doesn't matter, will apply opacity later
+          ctx.fillText(watermarkText, canvas.width / 2, canvas.height / 2);
+          
+          const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+          const buffer = await blob.arrayBuffer();
+          wmImage = await mergedPdf.embedPng(buffer);
+          wmDims = { width: textWidth, height: textHeight };
+        }
+
+        const allPages = mergedPdf.getPages();
+        
         allPages.forEach((pg, idx) => {
-          const { width: pw } = pg.getSize();
-          const label = String(idx + 1);
-          const textW = font.widthOfTextAtSize(label, 11);
-          pg.drawText(label, {
-            x: pw / 2 - textW / 2,
-            y: 18,
-            size: 11,
-            font,
-            color: PDFLib.rgb(0.35, 0.35, 0.35),
-          });
+          const { width: pw, height: ph } = pg.getSize();
+          
+          if (doStampBtn) {
+            const label = String(idx + 1);
+            const textW = font.widthOfTextAtSize(label, 11);
+            pg.drawText(label, {
+              x: pw / 2 - textW / 2,
+              y: 18,
+              size: 11,
+              font,
+              color: PDFLib.rgb(0.35, 0.35, 0.35),
+            });
+          }
+
+          if (wmImage) {
+            // Draw diagonal watermark from image!
+            // Adjust visual size for the PDF
+            const targetHeight = 60; 
+            const scale = targetHeight / wmDims.height;
+            const targetWidth = wmDims.width * scale;
+            
+            pg.drawImage(wmImage, {
+              x: pw / 2 - (targetWidth / 2.8),
+              y: ph / 2 - (targetHeight / 2.8),
+              width: targetWidth,
+              height: targetHeight,
+              rotate: PDFLib.degrees(45),
+              opacity: 0.25,
+            });
+          }
         });
       }
 
@@ -1684,12 +1924,13 @@
 
   /**
    * Compress any image File to a JPEG ArrayBuffer via an off-screen canvas.
-   * Always outputs JPEG so pdf-lib can consistently use embedJpg.
+   * Also applies mirroring (flipH) onto pixel data before compilation.
    * @param {File} file
    * @param {number} quality  0.1 – 1.0
+   * @param {boolean} flipH  True if horizontally mirrored
    * @returns {Promise<ArrayBuffer>}
    */
-  async function compressImage(file, quality) {
+  async function compressImage(file, quality, flipH = false) {
     const url = URL.createObjectURL(file);
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1697,7 +1938,13 @@
         const canvas = document.createElement('canvas');
         canvas.width  = img.naturalWidth;
         canvas.height = img.naturalHeight;
-        canvas.getContext('2d').drawImage(img, 0, 0);
+        const ctx = canvas.getContext('2d');
+        if (flipH) {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(img, 0, 0);
+        
         canvas.toBlob(async (blob) => {
           URL.revokeObjectURL(url);
           if (!blob) { reject(new Error('compressImage: toBlob returned null')); return; }
@@ -1806,6 +2053,7 @@
 
   // DOM refs for sort buttons
   const btnSortAZ      = document.getElementById('btn-sort-az');
+  const btnSortNum     = document.getElementById('btn-sort-num');
   const btnSortDate    = document.getElementById('btn-sort-date');
   const btnSortReverse = document.getElementById('btn-sort-reverse');
 
@@ -1826,6 +2074,13 @@
     fileItems.sort((a, b) => a.file.name.localeCompare(b.file.name));
     applyDOMOrder();
     showToast(tr('toastSortedAZ'), 'success');
+  }
+
+  /** Sort Numerically by filename */
+  function sortNum() {
+    fileItems.sort((a, b) => a.file.name.localeCompare(b.file.name, undefined, { numeric: true, sensitivity: 'base' }));
+    applyDOMOrder();
+    showToast(tr('toastSortedNum'), 'success');
   }
 
   /** Sort by lastModified date, oldest first */
@@ -1865,7 +2120,29 @@
     });
     fileItems = [];
     fileCanvas.innerHTML = '';
+    selectedIds.clear();
+    lastSelectedId = null;
+    updateBatchUI();
     updateUI();
+  });
+
+  // Batch action listeners
+  btnBatchRotL.addEventListener('click', () => {
+    selectedIds.forEach(id => rotateItem(id, -90));
+  });
+  btnBatchRotR.addEventListener('click', () => {
+    selectedIds.forEach(id => rotateItem(id, +90));
+  });
+  btnBatchDelete.addEventListener('click', () => {
+    // Collect specific IDs because arrays will mutate
+    const ids = Array.from(selectedIds);
+    ids.forEach(id => removeItem(id));
+  });
+  btnBatchCancel.addEventListener('click', () => {
+    selectedIds.clear();
+    lastSelectedId = null;
+    document.querySelectorAll('.file-card.selected').forEach(c => c.classList.remove('selected'));
+    updateBatchUI();
   });
 
   // View toggle
@@ -1877,6 +2154,7 @@
 
   // Sort buttons
   btnSortAZ.addEventListener('click',      sortAZ);
+  btnSortNum.addEventListener('click',     sortNum);
   btnSortDate.addEventListener('click',    sortByDate);
   btnSortReverse.addEventListener('click', reverseOrder);
 
@@ -1918,6 +2196,58 @@
   // Initial UI state & language (TR is default)
   setLanguage('tr');
   updateUI();
+
+  // ════════════════════════════════════════════════════════════════════
+  //  PWA (Progressive Web App) INLINE SUPPORT
+  // ════════════════════════════════════════════════════════════════════
+  (function() {
+    if ('serviceWorker' in navigator) {
+      // 1. Create a minimal inline Service Worker that caches this page
+      const swCode = `
+        const CACHE_NAME = 'onefile-pdf-cache-v1';
+        self.addEventListener('install', (e) => {
+          self.skipWaiting();
+        });
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(clients.claim());
+        });
+        self.addEventListener('fetch', (e) => {
+          e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
+        });
+      `;
+      const swBlob = new Blob([swCode], { type: 'text/javascript' });
+      const swUrl = URL.createObjectURL(swBlob);
+      
+      // 2. Create minimal inline Manifest dynamically
+      const manifestJson = {
+        name: "OneFile PDF Merger",
+        short_name: "OneFile",
+        description: "Offline Privacy-First PDF Tool",
+        start_url: window.location.href,
+        display: "standalone",
+        background_color: "#0f1117",
+        theme_color: "#0f1117",
+        icons: [{
+          src: document.getElementById('app-favicon').href,
+          sizes: "any",
+          type: "image/svg+xml"
+        }]
+      };
+      
+      const manifestBlob = new Blob([JSON.stringify(manifestJson)], { type: 'application/manifest+json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = manifestUrl;
+      document.head.appendChild(link);
+      
+      // Register the fake dynamic SW (safely catches if file:// url)
+      navigator.serviceWorker.register(swUrl).catch(err => {
+        // usually fails on file://, which is expected
+      });
+    }
+  })();
 
   </script>
 
