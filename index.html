@@ -10,8 +10,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OneFile – PDF & Image Merger</title>
-  <meta name="description" content="Merge PDFs and images into a single PDF file, all in your browser. No uploads, no server—100% private." />
+  <title>Privacy-First Offline PDF Merger | No Upload Client-Side Tool</title>
+  <meta name="description" content="Merge PDFs and images completely offline in your browser. A privacy-first, client-side PDF tool with no uploads, no server, and no data collection." />
+  <meta name="keywords" content="offline PDF merger, no upload PDF tool, privacy-first PDF merge, client-side PDF, browser PDF merger, secure PDF combiner" />
+  
+  <!-- ─── SEO & Social Meta Tags ─── -->
+  <meta name="author" content="AutoPyloter" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0f1117" />
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Privacy-First Offline PDF Merger | OneFile" />
+  <meta property="og:description" content="Merge PDFs completely offline in your browser. No uploads, no server, 100% private." />
+  <meta property="og:type" content="website" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Privacy-First Offline PDF Merger | OneFile" />
+  <meta name="twitter:description" content="Merge PDFs completely offline in your browser. No uploads, no server, 100% private." />
+  
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "OneFile – PDF & Image Merger",
+    "description": "Merge PDFs and compress images entirely offline in your browser. A privacy-first, client-side PDF tool requiring no server uploads.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript and a modern browser supporting WebAssembly",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 
   <!-- ─── Embedded Favicon (self-contained, no external file needed) ─── -->
   <link id="app-favicon" rel="icon" type="image/svg+xml" />
@@ -955,6 +989,30 @@
   </main>
 
   <!-- ════════════════════════════════════════════════════════════════
+       SEO / ABOUT SECTION
+  ═════════════════════════════════════════════════════════════════ -->
+  <section id="seo-section" class="max-w-[1000px] mx-auto px-6 py-12 mt-4 mb-20 text-[var(--muted)] border-t border-[var(--border)]">
+    <h1 class="text-2xl font-bold text-[var(--text)] mb-6 tracking-tight" data-i18n="seoMainTitle">Privacy-First Offline PDF Tool</h1>
+    
+    <div class="space-y-6 text-[0.9rem] leading-relaxed">
+      <div>
+        <h2 class="text-[1.05rem] font-semibold text-[var(--text)] mb-2" data-i18n="seoWhyTitle">Why OneFile?</h2>
+        <p data-i18n="seoWhyText">OneFile is a dedicated <strong>offline PDF merger</strong> built for professionals who prioritize data privacy. Unlike traditional cloud-based services, this <strong>no upload PDF tool</strong> processes your documents entirely within your web browser. Your sensitive files never leave your device, ensuring maximum security and confidentiality.</p>
+      </div>
+
+      <div>
+        <h2 class="text-[1.05rem] font-semibold text-[var(--text)] mb-2" data-i18n="seoClientTitle">100% Client-Side Processing</h2>
+        <p data-i18n="seoClientText">By utilizing modern WebAssembly (via pdf-lib) and the power of your device's RAM, this <strong>client-side PDF</strong> application allows you to merge PDFs and compress images instantly. There's no server involved, which means zero waiting for uploads or downloads—even for large, high-resolution documents.</p>
+      </div>
+
+      <div>
+        <h2 class="text-[1.05rem] font-semibold text-[var(--text)] mb-2" data-i18n="seoOfflineTitle">Completely Offline Capable</h2>
+        <p data-i18n="seoOfflineText">Save this page or download our self-contained HTML file to merge your files completely offline. Our <strong>privacy-first PDF merge</strong> utility requires no internet connection after the initial load, no registration, and absolutely no subscriptions. Fast, free, and secure.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
        STICKY MERGE BAR
   ═════════════════════════════════════════════════════════════════ -->
   <footer id="merge-bar" style="display:none;">
@@ -1042,6 +1100,14 @@
       toastThumbError:   '⚠ Önizleme oluşturulamadı',
       // Confirm dialog
       confirmClear:      'Tüm dosyalar listeden kaldırılsın mı?',
+      // SEO
+      seoMainTitle:      'Gizlilik Odaklı Çevrimdışı PDF Aracı',
+      seoWhyTitle:       'Neden OneFile?',
+      seoWhyText:        'OneFile, veri gizliliğine öncelik veren profesyoneller için özel olarak oluşturulmuş bir <strong>çevrimdışı PDF birleştirme</strong> aracıdır. Geleneksel bulut tabanlı hizmetlerin aksine, <strong>dosya yükleme gerektirmeyen bu PDF aracı</strong>, belgelerinizi tamamen web tarayıcınızın içinde işler. Hassas dosyalarınız hiçbir zaman cihazınızdan ayrılmaz, bu sayede maksimum güvenlik ve gizlilik sağlanır.',
+      seoClientTitle:    '%100 İstemci Tarafı İşleme',
+      seoClientText:     'Modern WebAssembly teknolojilerini (pdf-lib aracılığıyla) ve bilgisayarınızın RAM gücünü kullanarak, bu <strong>istemci tarafı PDF (client-side)</strong> uygulamasıyla PDF\'leri birleştirebilir ve resimleri anında sıkıştırabilirsiniz. Sunucu süreci olmadığından, büyük ve yüksek çözünürlüklü belgelerde bile yükleme veya indirme işlemi beklemezsiniz.',
+      seoOfflineTitle:   'Tamamen Çevrimdışı Çalışabilir',
+      seoOfflineText:    'Bu sayfayı kaydedin veya dosyalarınızı tamamen çevrimdışı birleştirmek için kullanıma hazır HTML dosyamızı indirin. <strong>Gizlilik öncelikli PDF birleştirme</strong> aracımız, uygulamanın ilk açılışından sonra hiçbir internet bağlantısı gerektirmez, üyelik veya abonelik istemez. Hızlı, ücretsiz ve güvenilir.',
       // Lang toggle
       langToggle:        '🇬🇧 EN',
     },
@@ -1083,6 +1149,14 @@
       toastThumbError:   '⚠ Could not preview',
       // Confirm dialog
       confirmClear:      'Remove all files from the list?',
+      // SEO
+      seoMainTitle:      'Privacy-First Offline PDF Tool',
+      seoWhyTitle:       'Why OneFile?',
+      seoWhyText:        'OneFile is a dedicated <strong>offline PDF merger</strong> built for professionals who prioritize data privacy. Unlike traditional cloud-based services, this <strong>no upload PDF tool</strong> processes your documents entirely within your web browser. Your sensitive files never leave your device, ensuring maximum security and confidentiality.',
+      seoClientTitle:    '100% Client-Side Processing',
+      seoClientText:     'By utilizing modern WebAssembly (via pdf-lib) and the power of your device\'s RAM, this <strong>client-side PDF</strong> application allows you to merge PDFs and compress images instantly. There\'s no server involved, which means zero waiting for uploads or downloads—even for large, high-resolution documents.',
+      seoOfflineTitle:   'Completely Offline Capable',
+      seoOfflineText:    'Save this page or download our self-contained HTML file to merge your files completely offline. Our <strong>privacy-first PDF merge</strong> utility requires no internet connection after the initial load, no registration, and absolutely no subscriptions. Fast, free, and secure.',
       // Lang toggle
       langToggle:        '🇹🇷 TR',
     },
