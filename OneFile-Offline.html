@@ -1186,8 +1186,9 @@ Check your Browserslist config to be sure that your targets are set up correctly
 <div aria-live="polite" id="toast" role="status"></div>
 <!-- ═══ Lightbox Preview ═══ -->
 <div id="lightbox-modal" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.9); align-items:center; justify-content:center;">
-<button aria-label="Close Lightbox" id="lightbox-close" style="position:absolute; top:20px; right:20px; background:none; border:none; color:white; font-size:2.5rem; cursor:pointer;">×</button>
-<img id="lightbox-img" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px;"/>
+<button aria-label="Close Lightbox" id="lightbox-close" style="position:absolute; top:20px; right:20px; z-index:201; background:none; border:none; color:white; font-size:2.5rem; cursor:pointer;">×</button>
+<img id="lightbox-img" style="max-width:90%; max-height:90%; object-fit:contain; border-radius:8px; display:none;"/>
+<iframe id="lightbox-pdf" style="width:90%; height:90%; border:none; border-radius:8px; display:none; background:white;"></iframe>
 </div>
 <!-- ════════════════════════════════════════════════════════════════
        APPLICATION JAVASCRIPT
@@ -1400,6 +1401,7 @@ Check your Browserslist config to be sure that your targets are set up correctly
   const toast           = document.getElementById('toast');
   const lightboxModal   = document.getElementById('lightbox-modal');
   const lightboxImg     = document.getElementById('lightbox-img');
+  const lightboxPdf     = document.getElementById('lightbox-pdf');
   const lightboxClose   = document.getElementById('lightbox-close');
 
   const batchActionsEl  = document.getElementById('batch-actions');
@@ -1409,9 +1411,20 @@ Check your Browserslist config to be sure that your targets are set up correctly
   const btnBatchDelete  = document.getElementById('btn-batch-delete');
   const btnBatchCancel  = document.getElementById('btn-batch-cancel');
 
-  lightboxClose.addEventListener('click', () => lightboxModal.style.display = 'none');
+  let currentPdfObjUrl = null;
+
+  function closeLightbox() {
+    lightboxModal.style.display = 'none';
+    if (currentPdfObjUrl) {
+      URL.revokeObjectURL(currentPdfObjUrl);
+      currentPdfObjUrl = null;
+    }
+    lightboxPdf.src = '';
+  }
+
+  lightboxClose.addEventListener('click', closeLightbox);
   lightboxModal.addEventListener('click', (e) => {
-    if (e.target === lightboxModal) lightboxModal.style.display = 'none';
+    if (e.target === lightboxModal) closeLightbox();
   });
 
   // ─── SortableJS instance ──────────────────────────────────────────
@@ -1611,6 +1624,9 @@ Check your Browserslist config to be sure that your targets are set up correctly
 
       <!-- Controls -->
       <div class="card-controls">
+        <button class="ctrl-btn preview" title="Preview" data-id="${item.id}" aria-label="Preview">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
         ${item.type === 'image' ? `<button class="ctrl-btn flip-h" title="Flip Horizontal" data-id="${item.id}" aria-label="Flip">⇄</button>` : ''}
         <button class="ctrl-btn rotate-left"  title="Rotate left"  data-id="${item.id}" aria-label="Rotate left">↺</button>
         <button class="ctrl-btn rotate-right" title="Rotate right" data-id="${item.id}" aria-label="Rotate right">↻</button>
@@ -1619,6 +1635,20 @@ Check your Browserslist config to be sure that your targets are set up correctly
     `;
 
     // Control button listeners
+    card.querySelector('.preview').addEventListener('click', () => {
+      if (item.type === 'pdf') {
+         lightboxImg.style.display = 'none';
+         lightboxPdf.style.display = 'block';
+         currentPdfObjUrl = URL.createObjectURL(item.file);
+         lightboxPdf.src = currentPdfObjUrl + '#view=FitH';
+      } else {
+         lightboxPdf.style.display = 'none';
+         lightboxImg.style.display = 'block';
+         lightboxImg.src = item.thumbUrl;
+         lightboxImg.style.transform = `rotate(${item.rotation}deg) scaleX(${item.flipH ? -1 : 1})`;
+      }
+      lightboxModal.style.display = 'flex';
+    });
     card.querySelector('.rotate-left').addEventListener('click',  () => rotateItem(item.id, -90));
     card.querySelector('.rotate-right').addEventListener('click', () => rotateItem(item.id, +90));
     card.querySelector('.remove').addEventListener('click',       () => removeItem(item.id));
@@ -1669,13 +1699,6 @@ Check your Browserslist config to be sure that your targets are set up correctly
         else c.classList.remove('selected');
       });
       updateBatchUI();
-    });
-
-    // Double-click to open preview
-    card.addEventListener('dblclick', () => {
-      lightboxImg.src = item.thumbUrl;
-      lightboxImg.style.transform = `rotate(${item.rotation}deg) scaleX(${item.flipH ? -1 : 1})`;
-      lightboxModal.style.display = 'flex';
     });
 
     // Page-range input: update state & prevent drag from firing
