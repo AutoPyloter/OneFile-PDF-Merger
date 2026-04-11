@@ -42,6 +42,8 @@ It is incredibly simple:
 3. Drag & drop your PDFs or images.
 4. Merge and save. 
 
+**Quick Access:** Alternatively, you can access it directly online via GitHub Pages without downloading: [https://autopyloter.github.io/OneFile-PDF-Merger/](https://autopyloter.github.io/OneFile-PDF-Merger/)
+
 ### 💡 A Note from the Developer
 
 I didn't build this to monetize your data or lock you into a subscription. I built this because I believe technology should empower people, not extort them. The only thing I ask in return for this software is a simple "Thank you."
@@ -85,6 +87,8 @@ Kullanması şaşırtıcı derecede zordur, çünkü hiçbir "next -> next -> in
 2. Üzerine çift tıklayın (Zaten sisteminizde kurulu olan Chrome, Safari, Edge gibi bir tarayıcıda anında açılır).
 3. Belgelerinizi veya resimlerinizi sayfanın ortasına sürükleyip bırakın.
 4. Çıkan dosyayı kaydedin. Merak etmeyin, internetiniz kesik olsa da çalışacaktır.
+
+**Hızlı Erişim:** Alternatif olarak, indirmeden doğrudan GitHub Pages üzerinden de erişebilirsiniz: [https://autopyloter.github.io/OneFile-PDF-Merger/](https://autopyloter.github.io/OneFile-PDF-Merger/)
 
 ### 💡 Geliştiriciden Not
 
